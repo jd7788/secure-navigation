@@ -1,11 +1,8 @@
-// 后端验证逻辑：仅在Cloudflare服务器执行，哈希值从环境变量读取
+// 明文密码验证版：直接比对环境变量中的明文密码
 export async function onRequestPost(context) {
   try {
-    // 1. 解析前端请求数据
-    const requestData = await context.request.json();
-    const { siteKey, password } = requestData;
-    
-    // 校验参数完整性
+    // 1. 解析前端请求（siteKey + 用户输入的明文密码）
+    const { siteKey, password } = await context.request.json();
     if (!siteKey || !password) {
       return new Response(JSON.stringify({ success: false }), {
         headers: { "Content-Type": "application/json" },
@@ -13,51 +10,46 @@ export async function onRequestPost(context) {
       });
     }
 
-    // 2. 网站标识与环境变量的映射关系（关键：哈希值存储在环境变量中）
+    // 2. 网站标识 ↔ 环境变量名映射（变量名统一为“网站标识+_PASSWORD”）
     const SITE_ENV_MAP = {
       // 常用工具
-      "baidu": "BAIDU_HASH",
-      "google": "GOOGLE_HASH",
-      "github": "GITHUB_HASH",
-      "codepen": "CODEPEN_HASH",
-      
+      "baidu": "BAIDU_PASSWORD",
+      "google": "GOOGLE_PASSWORD",
+      "github": "GITHUB_PASSWORD",
+      "codepen": "CODEPEN_PASSWORD",
       // 视频平台
-      "bilibili": "BILIBILI_HASH",
-      "youku": "YOUKU_HASH",
-      "iqiyi": "IQIYI_HASH",
-      "youtube": "YOUTUBE_HASH",
-      "tencent": "TENCENT_HASH",
-      
+      "bilibili": "BILIBILI_PASSWORD",
+      "youku": "YOUKU_PASSWORD",
+      "iqiyi": "IQIYI_PASSWORD",
+      "youtube": "YOUTUBE_PASSWORD",
+      "tencent": "TENCENT_PASSWORD",
       // 社交网络
-      "weixin": "WEIXIN_HASH",
-      "weibo": "WEIBO_HASH",
-      "douyin": "DOUYIN_HASH",
-      "kuaishou": "KUAIHOU_HASH",
-      
+      "weixin": "WEIXIN_PASSWORD",
+      "weibo": "WEIBO_PASSWORD",
+      "douyin": "DOUYIN_PASSWORD",
+      "kuaishou": "KUAIHOU_PASSWORD",
       // 在线音乐
-      "neteaseMusic": "NETEASE_MUSIC_HASH",
-      "qqMusic": "QQ_MUSIC_HASH",
-      "kugouMusic": "KUGOU_MUSIC_HASH",
-      "kuwoMusic": "KUWO_MUSIC_HASH",
-      "xiamiMusic": "XIAMI_MUSIC_HASH",
-      "spotify": "SPOTIFY_HASH",
-      
+      "neteaseMusic": "NETEASE_MUSIC_PASSWORD",
+      "qqMusic": "QQ_MUSIC_PASSWORD",
+      "kugouMusic": "KUGOU_MUSIC_PASSWORD",
+      "kuwoMusic": "KUWO_MUSIC_PASSWORD",
+      "xiamiMusic": "XIAMI_MUSIC_PASSWORD",
+      "spotify": "SPOTIFY_PASSWORD",
       // 邮箱平台
-      "neteaseMail": "NETEASE_MAIL_HASH",
-      "qqMail": "QQ_MAIL_HASH",
-      "gmail": "GMAIL_HASH",
-      "outlook": "OUTLOOK_HASH",
-      "sinaMail": "SINA_MAIL_HASH",
-      "sohuMail": "SOHU_MAIL_HASH",
-      
+      "neteaseMail": "NETEASE_MAIL_PASSWORD",
+      "qqMail": "QQ_MAIL_PASSWORD",
+      "gmail": "GMAIL_PASSWORD",
+      "outlook": "OUTLOOK_PASSWORD",
+      "sinaMail": "SINA_MAIL_PASSWORD",
+      "sohuMail": "SOHU_MAIL_PASSWORD",
       // 学习平台
-      "icourse": "ICOURESE_HASH",
-      "coursera": "COURSERA_HASH",
-      "neteaseClass": "NETEASE_CLASS_HASH",
-      "baijiajiangtan": "BAIJIA_HASH"
+      "icourse": "ICOURESE_PASSWORD",
+      "coursera": "COURSERA_PASSWORD",
+      "neteaseClass": "NETEASE_CLASS_PASSWORD",
+      "baijiajiangtan": "BAIJIA_PASSWORD"
     };
 
-    // 3. 检查siteKey是否有效
+    // 3. 检查siteKey是否有效，获取对应的环境变量名
     const envVarName = SITE_ENV_MAP[siteKey];
     if (!envVarName) {
       return new Response(JSON.stringify({ success: false }), {
@@ -66,40 +58,26 @@ export async function onRequestPost(context) {
       });
     }
 
-    // 4. 从环境变量获取正确的哈希值（哈希值在此处注入，源码中无暴露）
-    const correctHash = context.env[envVarName];
-    if (!correctHash) {
+    // 4. 从环境变量获取明文密码（直接读取，无需哈希）
+    const correctPassword = context.env[envVarName];
+    if (!correctPassword) { // 未配置该网站的密码变量
       return new Response(JSON.stringify({ success: false }), {
         headers: { "Content-Type": "application/json" },
         status: 500
       });
     }
 
-    // 5. 计算用户输入密码的SHA-256哈希
-    const inputHash = await sha256(password);
-
-    // 6. 比对哈希并返回结果
+    // 5. 直接比对明文密码（核心简化步骤）
     return new Response(JSON.stringify({
-      success: inputHash === correctHash
+      success: password === correctPassword // 明文相等即验证通过
     }), {
       headers: { "Content-Type": "application/json" }
     });
 
   } catch (error) {
-    // 捕获所有异常，返回验证失败
     return new Response(JSON.stringify({ success: false }), {
       headers: { "Content-Type": "application/json" },
       status: 500
     });
   }
-}
-
-// SHA-256哈希计算工具函数
-async function sha256(str) {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(str);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  return Array.from(new Uint8Array(hashBuffer))
-    .map(byte => byte.toString(16).padStart(2, '0'))
-    .join('');
 }
