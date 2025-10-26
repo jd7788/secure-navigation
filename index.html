@@ -1,18 +1,30 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title> 安全导航 | 快捷稳定 </title>
+  <title>网址导航</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
   
-  <!-- Tailwind配置（精简无关扩展） -->
+  <!-- Tailwind 配置 -->
   <script>
     tailwind.config = {
       theme: {
         extend: {
-          colors: { primary: '#3B82F6', dark: '#1F2937' },
+          colors: {
+            primary: '#3B82F6',      // 主色：科技蓝（hover统一色）
+            success: '#10B981',      // 辅助色：成功绿
+            warning: '#F59E0B',      // 辅助色：警示黄
+            dark: {
+              100: '#F3F4F6',        // 浅灰背景
+              200: '#E5E7EB',        // 边框、分割线
+              300: '#9CA3AF',        // 弱文本
+              400: '#6B7280',        // 次文本
+              500: '#1F2937',        // 主文本
+            }
+          },
         }
       }
     }
@@ -20,32 +32,182 @@
   
   <style type="text/tailwindcss">
     @layer utilities {
-      .card-hover { @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:bg-primary/5; }
-      .category-title { @apply text-lg md:text-xl font-bold text-dark mb-4 pl-3 py-1 border-l-4 border-primary; }
-      .site-card { @apply bg-white rounded-xl p-5 shadow-sm card-hover flex flex-col items-center text-center w-full max-w-[120px] mx-auto cursor-pointer; }
-      .site-icon { @apply text-2xl md:text-3xl mb-3 transition-transform group-hover:scale-110; }
-      .site-name { @apply text-sm md:text-base font-medium truncate w-full; }
+      /* 卡片样式：增强立体感和交互 */
+      .site-card { 
+        @apply bg-white rounded-2xl p-6 shadow-md border border-dark-200 
+               transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:bg-primary/5 
+               flex flex-col items-center text-center w-full max-w-[130px] mx-auto cursor-pointer; 
+      }
+      /* 分类标题：强化视觉层级 */
+      .category-title { 
+        @apply text-xl md:text-2xl font-bold text-dark-500 mb-6 pl-4 py-2 
+               border-l-4 border-primary border-b border-dark-200 pb-3; 
+      }
+      /* 图标动效：旋转+缩放 */
+      .site-icon { 
+        @apply text-2xl md:text-3xl mb-3 transition-all duration-300 
+               group-hover:scale-110 group-hover:rotate-6; 
+      }
+      /* 文字容器：限制宽度，实现字体自适应 */
+      .site-name-container {
+        @apply w-full overflow-hidden;
+        position: relative;
+        height: 1.5em; /* 固定高度，避免文字换行导致卡片卡片高度变化 */
+      }
+      /* 网站名称：自适应字体大小 */
+      .site-name { 
+        @apply font-semibold truncate transition-colors
+               group-hover:bg-gradient-to-r from-primary to-blue-400 
+               group-hover:bg-clip-text group-hover:text-transparent; 
+        white-space: nowrap;
+        font-size: clamp(0.8rem, 4vw, 1rem); /* 核心：根据容器宽度动态调整 */
+      }
+      /* 按钮样式统一 */
+      .btn-primary {
+        @apply bg-primary text-white hover:bg-primary/90 transition-colors;
+      }
+      .btn-secondary {
+        @apply border border-dark-200 text-dark-500 hover:bg-dark-100 transition-colors;
+      }
+    }
+  </style>
+
+  <!-- 悬浮文字动画样式（优化版） -->
+  <style>
+    .floating-text {
+      position: absolute;
+      pointer-events: none; /* 不干扰鼠标交互 */
+      z-index: 9999; /* 确保在最上层显示 */
+      font-weight: bold;
+      will-change: transform, opacity; /* 优化动画性能 */
+      font-size: clamp(1rem, 3vw, 1.5rem);
+      transform-origin: center center; /* 统一锚点为中心点 */
+      text-shadow: 0 1px 2px rgba(0,0,0,0.1); /* 添加轻微阴影增强可读性 */
+      opacity: 0; /* 初始状态透明，通过动画淡入 */
+    }
+
+    /* 1. 基础上升+淡化（优化淡入效果） */
+    .float-basic {
+      animation: float-basic 1.8s ease-out forwards;
+    }
+    @keyframes float-basic {
+      0% { transform: translate(-50%, -100%) scale(0.8); opacity: 0; }
+      20% { transform: translate(-50%, -100%) scale(1); opacity: 1; }
+      100% { transform: translate(-50%, calc(-100% - 60px)) scale(1); opacity: 0; }
+    }
+
+    /* 2. 左右摇摆上升 */
+    .float-sway {
+      animation: float-sway 1.8s ease-in-out forwards;
+    }
+    @keyframes float-sway {
+      0% { transform: translate(-50%, -100%) scale(0.8); opacity: 0; }
+      20% { transform: translate(-50%, -100%) scale(1); opacity: 1; }
+      25% { transform: translate(calc(-50% + 10px), calc(-100% - 15px)) scale(1); }
+      50% { transform: translate(calc(-50% - 10px), calc(-100% - 30px)) scale(1); }
+      75% { transform: translate(calc(-50% + 5px), calc(-100% - 45px)) scale(1); }
+      100% { transform: translate(-50%, calc(-100% - 60px)) scale(1); opacity: 0; }
+    }
+
+    /* 3. 旋转上升（随机方向） */
+    .float-spin {
+      animation: float-spin 1.8s ease-out forwards;
+    }
+    @keyframes float-spin {
+      0% { transform: translate(-50%, -100%) scale(0.8) rotate(0deg); opacity: 0; }
+      20% { transform: translate(-50%, -100%) scale(1) rotate(0deg); opacity: 1; }
+      100% { transform: translate(-50%, calc(-100% - 60px)) rotate(360deg); opacity: 0; }
+    }
+
+    /* 4. 先放大后缩小上升 */
+    .float-pulse {
+      animation: float-pulse 1.8s ease-out forwards;
+    }
+    @keyframes float-pulse {
+      0% { transform: translate(-50%, -100%) scale(0.8); opacity: 0; }
+      20% { transform: translate(-50%, -100%) scale(1); opacity: 1; }
+      50% { transform: translate(-50%, calc(-100% - 30px)) scale(1.3); }
+      100% { transform: translate(-50%, calc(-100% - 60px)) scale(0.7); opacity: 0; }
+    }
+
+    /* 5. 颜色渐变+上升 */
+    .float-gradient {
+      animation: float-gradient 1.8s ease-out forwards;
+    }
+    @keyframes float-gradient {
+      0% { 
+        transform: translate(-50%, -100%) scale(0.8); 
+        opacity: 0;
+        filter: hue-rotate(0deg);
+      }
+      20% { 
+        transform: translate(-50%, -100%) scale(1); 
+        opacity: 1;
+      }
+      100% { 
+        transform: translate(-50%, calc(-100% - 60px)); 
+        opacity: 0;
+        filter: hue-rotate(180deg);
+      }
+    }
+
+    /* 6. 波浪形上升 */
+    .float-wave {
+      animation: float-wave 1.8s ease-in-out forwards;
+    }
+    @keyframes float-wave {
+      0% { transform: translate(-50%, -100%) scale(0.8) rotate(0deg); opacity: 0; }
+      20% { transform: translate(-50%, -100%) scale(1) rotate(0deg); opacity: 1; }
+      25% { transform: translate(-50%, calc(-100% - 15px)) rotate(5deg); }
+      50% { transform: translate(-50%, calc(-100% - 30px)) rotate(-5deg); }
+      75% { transform: translate(-50%, calc(-100% - 45px)) rotate(3deg); }
+      100% { transform: translate(-50%, calc(-100% - 60px)) rotate(0deg); opacity: 0; }
+    }
+
+    /* 7. 闪烁上升 */
+    .float-flash {
+      animation: float-flash 1.8s ease-out forwards;
+    }
+    @keyframes float-flash {
+      0% { transform: translate(-50%, -100%) scale(0.8); opacity: 0; }
+      20% { transform: translate(-50%, -100%) scale(1); opacity: 1; }
+      20%, 40%, 60%, 80% { opacity: 1; }
+      30%, 50%, 70%, 90% { opacity: 0.5; }
+      100% { transform: translate(-50%, calc(-100% - 60px)); opacity: 0; }
+    }
+
+    /* 8. 螺旋上升 */
+    .float-spiral {
+      animation: float-spiral 1.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+    @keyframes float-spiral {
+      0% { transform: translate(-50%, -100%) scale(0.8) rotate(0deg); opacity: 0; }
+      20% { transform: translate(-50%, -100%) scale(1) rotate(0deg); opacity: 1; }
+      25% { transform: translate(calc(-50% + 10px), calc(-100% - 15px)) rotate(90deg); }
+      50% { transform: translate(calc(-50% - 5px), calc(-100% - 30px)) rotate(180deg); }
+      75% { transform: translate(calc(-50% + 5px), calc(-100% - 45px)) rotate(270deg); }
+      100% { transform: translate(-50%, calc(-100% - 60px)) rotate(360deg); opacity: 0; }
     }
   </style>
 </head>
 
-<body class="bg-gray-50 font-sans">
+<body class="bg-dark-100 font-sans">
   <!-- 顶部导航 -->
-  <header class="bg-white shadow-sm sticky top-0 z-10">
-    <div class="container mx-auto px-4 py-4">
+  <header class="bg-white shadow-md sticky top-0 z-10">
+    <div class="container mx-auto px-4 py-4 max-w-7xl">
       <div class="flex flex-col md:flex-row items-center justify-between gap-4">
         <div class="flex items-center space-x-3">
           <i class="fa fa-compass text-primary text-2xl"></i>
-          <h1 class="text-2xl font-bold bg-gradient-to-r from-primary to-blue-400 bg-clip-text text-transparent">天空的飞鸟</h1>
+          <h1 class="text-2xl font-bold bg-gradient-to-r from-primary to-blue-400 bg-clip-text text-transparent">安全导航</h1>
         </div>
         
-        <!-- 搜索框 -->
-        <div class="w-full md:w-1/3">
+        <!-- 搜索框（添加ID用于排除点击） -->
+        <div id="searchContainer" class="w-full md:w-1/3">
           <div class="relative">
             <input type="text" id="searchInput" placeholder="搜索内容..." 
-                  class="w-full py-2 px-4 pr-10 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/30">
-            <button id="searchBtn" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary">
-              <i class="fa fa-search"></i>
+                  class="w-full py-3 px-4 pr-10 rounded-lg border border-dark-200 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+            <button id="searchBtn" class="absolute right-3 top-1/2 -translate-y-1/2 text-dark-400 hover:text-primary transition-colors">
+              <i class="fa fa-search text-lg"></i>
             </button>
           </div>
         </div>
@@ -54,99 +216,352 @@
   </header>
 
   <!-- 主要内容 -->
-  <main class="container mx-auto px-4 py-8">
-    <!-- 时间显示 -->
-    <div class="bg-white rounded-xl p-4 mb-6 shadow-sm text-center">
-      <div id="beijingDate" class="text-gray-500"></div>
-      <div id="beijingTime" class="text-2xl font-bold mt-1"></div>
+  <main class="container mx-auto px-4 py-8 max-w-7xl">
+    <!-- 时间显示（带骨架屏） -->
+    <div class="bg-white rounded-2xl p-6 mb-8 shadow-md border border-dark-200 text-center">
+      <!-- 骨架屏 -->
+      <div id="dateSkeleton" class="bg-dark-200 h-5 w-40 mx-auto rounded animate-pulse mb-3"></div>
+      <div id="timeSkeleton" class="bg-dark-200 h-10 w-48 mx-auto rounded animate-pulse mb-2"></div>
+      <!-- 真实内容（默认隐藏） -->
+      <div id="beijingDate" class="text-dark-400 hidden"></div>
+      <div id="beijingTime" class="text-3xl md:text-4xl font-bold text-dark-500 hidden"></div>
     </div>
 
     <!-- 说明 -->
-    <div class="bg-white rounded-xl p-4 mb-8 shadow-sm">
-      <p class="text-gray-600"><i class="fa fa-info-circle text-primary mr-2"></i>点击相应的卡片即可进入网站</p>
+    <div class="bg-white rounded-2xl p-5 mb-10 shadow-md border border-dark-200">
+      <p class="text-dark-400"><i class="fa fa-info-circle text-primary mr-2"></i></p>
     </div>
 
     <!-- 1. 常用工具 -->
-    <section class="mb-12">
+    <section class="mb-16">
       <h2 class="category-title">常用工具</h2>
-      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-        <div class="site-card group" onclick="verifySite('baidu')"><i class="fa fa-search site-icon text-blue-500 group-hover:text-primary"></i><span class="site-name">百度 </span></div>
-        <div class="site-card group" onclick="verifySite('google')"><i class="fa fa-google site-icon text-red-500 group-hover:text-primary"></i><span class="site-name">谷歌  </span></div>
-        <div class="site-card group" onclick="verifySite('github')"><i class="fa fa-github site-icon text-gray-800 group-hover:text-primary"></i><span class="site-name">GitHub  </span></div>
-        <div class="site-card group" onclick="verifySite('codepen')"><i class="fa fa-code site-icon text-pink-500 group-hover:text-primary"></i><span class="site-name">CodePen  </span></div>
+      <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4 md:gap-6">
+        <div class="site-card group" onclick="verifySite('baidu')">
+          <i class="fa fa-search site-icon text-[#2B7FE0] group-hover:text-primary"></i>
+          <div class="site-name-container">
+            <span class="site-name">百度 <i class="fa fa-lock text-xs text-dark-300"></i></span>
+          </div>
+        </div>
+        <div class="site-card group" onclick="verifySite('google')">
+          <i class="fa fa-google site-icon text-[#4285F4] group-hover:text-primary"></i>
+          <div class="site-name-container">
+            <span class="site-name">谷歌 <i class="fa fa-lock text-xs text-dark-300"></i></span>
+          </div>
+        </div>
+        <div class="site-card group" onclick="verifySite('github')">
+          <i class="fa fa-github site-icon text-[#333333] group-hover:text-primary"></i>
+          <div class="site-name-container">
+            <span class="site-name">GitHub <i class="fa fa-lock text-xs text-dark-300"></i></span>
+          </div>
+        </div>
+        <div class="site-card group" onclick="verifySite('codepen')">
+          <i class="fa fa-code site-icon text-[#000000] group-hover:text-primary"></i>
+          <div class="site-name-container">
+            <span class="site-name">CodePen <i class="fa fa-lock text-xs text-dark-300"></i></span>
+          </div>
+        </div>
       </div>
     </section>
 
     <!-- 2. 视频平台 -->
-    <section class="mb-12">
+    <section class="mb-16">
       <h2 class="category-title">视频平台</h2>
-      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-        <div class="site-card group" onclick="verifySite('bilibili')"><i class="fa fa-play-circle site-icon text-pink-600 group-hover:text-primary"></i><span class="site-name">哔哩哔哩  </span></div>
-        <div class="site-card group" onclick="verifySite('youku')"><i class="fa fa-film site-icon text-red-600 group-hover:text-primary"></i><span class="site-name">优酷  </span></div>
-        <div class="site-card group" onclick="verifySite('iqiyi')"><i class="fa fa-play-circle-o site-icon text-red-600 group-hover:text-primary"></i><span class="site-name">爱奇艺  </span></div>
-        <div class="site-card group" onclick="verifySite('youtube')"><i class="fa fa-youtube-play site-icon text-red-600 group-hover:text-primary"></i><span class="site-name">YouTube  </span></div>
-        <div class="site-card group" onclick="verifySite('tencent')"><i class="fa fa-television site-icon text-blue-600 group-hover:text-primary"></i><span class="site-name">腾讯视频  </span></div>
+      <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4 md:gap-6">
+        <div class="site-card group" onclick="verifySite('bilibili')">
+          <i class="fa fa-play-circle site-icon text-[#FB7299] group-hover:text-primary"></i>
+          <div class="site-name-container">
+            <span class="site-name">哔哩哔哩 <i class="fa fa-lock text-xs text-dark-300"></i></span>
+          </div>
+        </div>
+        <div class="site-card group" onclick="verifySite('youku')">
+          <i class="fa fa-film site-icon text-[#FF0000] group-hover:text-primary"></i>
+          <div class="site-name-container">
+            <span class="site-name">优酷 <i class="fa fa-lock text-xs text-dark-300"></i></span>
+          </div>
+        </div>
+        <div class="site-card group" onclick="verifySite('iqiyi')">
+          <i class="fa fa-play-circle-o site-icon text-[#1E9FFF] group-hover:text-primary"></i>
+          <div class="site-name-container">
+            <span class="site-name">爱奇艺 <i class="fa fa-lock text-xs text-dark-300"></i></span>
+          </div>
+        </div>
+        <div class="site-card group" onclick="verifySite('youtube')">
+          <i class="fa fa-youtube-play site-icon text-[#FF0000] group-hover:text-primary"></i>
+          <div class="site-name-container">
+            <span class="site-name">YouTube <i class="fa fa-lock text-xs text-dark-300"></i></span>
+          </div>
+        </div>
+        <div class="site-card group" onclick="verifySite('tencent')">
+          <i class="fa fa-television site-icon text-[#00A1D6] group-hover:text-primary"></i>
+          <div class="site-name-container">
+            <span class="site-name">腾讯视频 <i class="fa fa-lock text-xs text-dark-300"></i></span>
+          </div>
+        </div>
       </div>
     </section>
 
     <!-- 3. 社交网络 -->
-    <section class="mb-12">
+    <section class="mb-16">
       <h2 class="category-title">社交网络</h2>
-      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-        <div class="site-card group" onclick="verifySite('weixin')"><i class="fa fa-weixin site-icon text-green-500 group-hover:text-primary"></i><span class="site-name">微信  </span></div>
-        <div class="site-card group" onclick="verifySite('weibo')"><i class="fa fa-weibo site-icon text-red-500 group-hover:text-primary"></i><span class="site-name">微博  </span></div>
-        <div class="site-card group" onclick="verifySite('douyin')"><i class="fa fa-music site-icon text-gray-800 group-hover:text-primary"></i><span class="site-name">抖音  </span></div>
-        <div class="site-card group" onclick="verifySite('kuaishou')"><i class="fa fa-play-circle site-icon text-orange-500 group-hover:text-primary"></i><span class="site-name">快手  </span></div>
+      <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4 md:gap-6">
+        <div class="site-card group" onclick="verifySite('weixin')">
+          <i class="fa fa-weixin site-icon text-[#07C160] group-hover:text-primary"></i>
+          <div class="site-name-container">
+            <span class="site-name">微信 <i class="fa fa-lock text-xs text-dark-300"></i></span>
+          </div>
+        </div>
+        <div class="site-card group" onclick="verifySite('weibo')">
+          <i class="fa fa-weibo site-icon text-[#E6162D] group-hover:text-primary"></i>
+          <div class="site-name-container">
+            <span class="site-name">微博 <i class="fa fa-lock text-xs text-dark-300"></i></span>
+          </div>
+        </div>
+        <div class="site-card group" onclick="verifySite('douyin')">
+          <i class="fa fa-music site-icon text-[#000000] group-hover:text-primary"></i>
+          <div class="site-name-container">
+            <span class="site-name">抖音 <i class="fa fa-lock text-xs text-dark-300"></i></span>
+          </div>
+        </div>
+        <div class="site-card group" onclick="verifySite('kuaishou')">
+          <i class="fa fa-play-circle site-icon text-[#FE2C55] group-hover:text-primary"></i>
+          <div class="site-name-container">
+            <span class="site-name">快手 <i class="fa fa-lock text-xs text-dark-300"></i></span>
+          </div>
+        </div>
       </div>
     </section>
 
     <!-- 4. 在线音乐 -->
-    <section class="mb-12">
+    <section class="mb-16">
       <h2 class="category-title">在线音乐</h2>
-      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-        <div class="site-card group" onclick="verifySite('neteaseMusic')"><i class="fa fa-music site-icon text-red-500 group-hover:text-primary"></i><span class="site-name">网易云音乐  </span></div>
-        <div class="site-card group" onclick="verifySite('qqMusic')"><i class="fa fa-headphones site-icon text-green-500 group-hover:text-primary"></i><span class="site-name">QQ音乐  </span></div>
-        <div class="site-card group" onclick="verifySite('kugouMusic')"><i class="fa fa-volume-up site-icon text-blue-500 group-hover:text-primary"></i><span class="site-name">酷狗音乐  </span></div>
-        <div class="site-card group" onclick="verifySite('kuwoMusic')"><i class="fa fa-music site-icon text-purple-500 group-hover:text-primary"></i><span class="site-name">酷我音乐  </span></div>
-        <div class="site-card group" onclick="verifySite('xiamiMusic')"><i class="fa fa-headphones site-icon text-orange-500 group-hover:text-primary"></i><span class="site-name">虾米音乐  </span></div>
-        <div class="site-card group" onclick="verifySite('spotify')"><i class="fa fa-spotify site-icon text-green-600 group-hover:text-primary"></i><span class="site-name">Spotify  </span></div>
+      <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4 md:gap-6">
+        <div class="site-card group" onclick="verifySite('neteaseMusic')">
+          <i class="fa fa-music site-icon text-[#C20C0C] group-hover:text-primary"></i>
+          <div class="site-name-container">
+            <span class="site-name">网易云音乐 <i class="fa fa-lock text-xs text-dark-300"></i></span>
+          </div>
+        </div>
+        <div class="site-card group" onclick="verifySite('qqMusic')">
+          <i class="fa fa-headphones site-icon text-[#12B7F5] group-hover:text-primary"></i>
+          <div class="site-name-container">
+            <span class="site-name">QQ音乐 <i class="fa fa-lock text-xs text-dark-300"></i></span>
+          </div>
+        </div>
+        <div class="site-card group" onclick="verifySite('kugouMusic')">
+          <i class="fa fa-volume-up site-icon text-[#FE8C00] group-hover:text-primary"></i>
+          <div class="site-name-container">
+            <span class="site-name">酷狗音乐 <i class="fa fa-lock text-xs text-dark-300"></i></span>
+          </div>
+        </div>
+        <div class="site-card group" onclick="verifySite('kuwoMusic')">
+          <i class="fa fa-music site-icon text-[#548DD4] group-hover:text-primary"></i>
+          <div class="site-name-container">
+            <span class="site-name">酷我音乐 <i class="fa fa-lock text-xs text-dark-300"></i></span>
+          </div>
+        </div>
+        <div class="site-card group" onclick="verifySite('xiamiMusic')">
+          <i class="fa fa-headphones site-icon text-[#FF6700] group-hover:text-primary"></i>
+          <div class="site-name-container">
+            <span class="site-name">虾米音乐 <i class="fa fa-lock text-xs text-dark-300"></i></span>
+          </div>
+        </div>
+        <div class="site-card group" onclick="verifySite('spotify')">
+          <i class="fa fa-spotify site-icon text-[#1DB954] group-hover:text-primary"></i>
+          <div class="site-name-container">
+            <span class="site-name">Spotify <i class="fa fa-lock text-xs text-dark-300"></i></span>
+          </div>
+        </div>
       </div>
     </section>
 
     <!-- 5. 邮箱平台 -->
-    <section class="mb-12">
+    <section class="mb-16">
       <h2 class="category-title">邮箱平台</h2>
-      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-        <div class="site-card group" onclick="verifySite('neteaseMail')"><i class="fa fa-envelope site-icon text-red-500 group-hover:text-primary"></i><span class="site-name">网易邮箱  </span></div>
-        <div class="site-card group" onclick="verifySite('qqMail')"><i class="fa fa-envelope-o site-icon text-blue-500 group-hover:text-primary"></i><span class="site-name">QQ邮箱  </span></div>
-        <div class="site-card group" onclick="verifySite('gmail')"><i class="fa fa-google site-icon text-red-500 group-hover:text-primary"></i><span class="site-name">Gmail  </span></div>
-        <div class="site-card group" onclick="verifySite('outlook')"><i class="fa fa-windows site-icon text-blue-600 group-hover:text-primary"></i><span class="site-name">Outlook  </span></div>
-        <div class="site-card group" onclick="verifySite('sinaMail')"><i class="fa fa-envelope site-icon text-orange-500 group-hover:text-primary"></i><span class="site-name">新浪邮箱  </span></div>
-        <div class="site-card group" onclick="verifySite('sohuMail')"><i class="fa fa-envelope site-icon text-blue-400 group-hover:text-primary"></i><span class="site-name">搜狐邮箱  </span></div>
+      <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4 md:gap-6">
+        <div class="site-card group" onclick="verifySite('neteaseMail')">
+          <i class="fa fa-envelope site-icon text-[#C20C0C] group-hover:text-primary"></i>
+          <div class="site-name-container">
+            <span class="site-name">网易邮箱 <i class="fa fa-lock text-xs text-dark-300"></i></span>
+          </div>
+        </div>
+        <div class="site-card group" onclick="verifySite('qqMail')">
+          <i class="fa fa-envelope-o site-icon text-[#12B7F5] group-hover:text-primary"></i>
+          <div class="site-name-container">
+            <span class="site-name">QQ邮箱 <i class="fa fa-lock text-xs text-dark-300"></i></span>
+          </div>
+        </div>
+        <div class="site-card group" onclick="verifySite('gmail')">
+          <i class="fa fa-google site-icon text-[#4285F4] group-hover:text-primary"></i>
+          <div class="site-name-container">
+            <span class="site-name">Gmail <i class="fa fa-lock text-xs text-dark-300"></i></span>
+          </div>
+        </div>
+        <div class="site-card group" onclick="verifySite('outlook')">
+          <i class="fa fa-windows site-icon text-[#00A4EF] group-hover:text-primary"></i>
+          <div class="site-name-container">
+            <span class="site-name">Outlook <i class="fa fa-lock text-xs text-dark-300"></i></span>
+          </div>
+        </div>
+        <div class="site-card group" onclick="verifySite('sinaMail')">
+          <i class="fa fa-envelope site-icon text-[#FF8C00] group-hover:text-primary"></i>
+          <div class="site-name-container">
+            <span class="site-name">新浪邮箱 <i class="fa fa-lock text-xs text-dark-300"></i></span>
+          </div>
+        </div>
+        <div class="site-card group" onclick="verifySite('sohuMail')">
+          <i class="fa fa-envelope site-icon text-[#0099FF] group-hover:text-primary"></i>
+          <div class="site-name-container">
+            <span class="site-name">搜狐邮箱 <i class="fa fa-lock text-xs text-dark-300"></i></span>
+          </div>
+        </div>
       </div>
     </section>
 
     <!-- 6. 学习平台 -->
-    <section class="mb-12">
+    <section class="mb-16">
       <h2 class="category-title">学习平台</h2>
-      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-        <div class="site-card group" onclick="verifySite('icourse')"><i class="fa fa-graduation-cap site-icon text-red-500 group-hover:text-primary"></i><span class="site-name">中国大学MOOC  </span></div>
-        <div class="site-card group" onclick="verifySite('coursera')"><i class="fa fa-book site-icon text-blue-500 group-hover:text-primary"></i><span class="site-name">Coursera  </span></div>
-        <div class="site-card group" onclick="verifySite('neteaseClass')"><i class="fa fa-leanpub site-icon text-orange-500 group-hover:text-primary"></i><span class="site-name">网易云课堂  </span></div>
-        <div class="site-card group" onclick="verifySite('baijiajiangtan')"><i class="fa fa-television site-icon text-indigo-500 group-hover:text-primary"></i><span class="site-name">百家讲坛  </span></div>
+      <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4 md:gap-6">
+        <div class="site-card group" onclick="verifySite('icourse')">
+          <i class="fa fa-graduation-cap site-icon text-[#C91F37] group-hover:text-primary"></i>
+          <div class="site-name-container">
+            <span class="site-name">中国大学MOOC <i class="fa fa-lock text-xs text-dark-300"></i></span>
+          </div>
+        </div>
+        <div class="site-card group" onclick="verifySite('coursera')">
+          <i class="fa fa-book site-icon text-[#0056D2] group-hover:text-primary"></i>
+          <div class="site-name-container">
+            <span class="site-name">Coursera <i class="fa fa-lock text-xs text-dark-300"></i></span>
+          </div>
+        </div>
+        <div class="site-card group" onclick="verifySite('neteaseClass')">
+          <i class="fa fa-leanpub site-icon text-[#FF6700] group-hover:text-primary"></i>
+          <div class="site-name-container">
+            <span class="site-name">网易云课堂 <i class="fa fa-lock text-xs text-dark-300"></i></span>
+          </div>
+        </div>
+        <div class="site-card group" onclick="verifySite('baijiajiangtan')">
+          <i class="fa fa-television site-icon text-[#E6162D] group-hover:text-primary"></i>
+          <div class="site-name-container">
+            <span class="site-name">百家讲坛 <i class="fa fa-lock text-xs text-dark-300"></i></span>
+          </div>
+        </div>
       </div>
     </section>
   </main>
 
+  <!-- 自定义密码弹窗（添加ID用于排除点击） -->
+  <div id="passwordModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-2xl p-8 w-[90%] max-w-md shadow-xl transform transition-all">
+      <h3 class="text-xl font-bold text-dark-500 mb-4" id="modalTitle">请输入密码</h3>
+      <p class="text-dark-400 mb-6" id="modalSubtitle">芝麻开门</p>
+      <input type="password" id="modalPassword" placeholder="请输入访问密码" 
+             class="w-full py-3 px-4 rounded-lg border border-dark-200 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 mb-4">
+      <p id="errorTip" class="text-red-500 text-sm mb-6 hidden"></p>
+      <div class="flex gap-4">
+        <button id="cancelBtn" class="flex-1 py-3 px-4 rounded-lg btn-secondary">取消</button>
+        <button id="confirmBtn" class="flex-1 py-3 px-4 rounded-lg btn-primary">
+          <span id="confirmText">验证</span>
+          <span id="loadingSpinner" class="hidden"><i class="fa fa-spinner fa-spin ml-2"></i></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- 页脚 -->
-  <footer class="bg-white border-t border-gray-200 py-6">
-    <div class="container mx-auto px-4 text-center text-gray-500 text-sm">
+  <footer class="bg-white border-t border-dark-200 py-6 mt-10">
+    <div class="container mx-auto px-4 text-center text-dark-300 text-sm max-w-7xl">
       <p>© 2025 安全导航 | 技术出品</p>
     </div>
   </footer>
 
   <script>
-    // 1. 配置常量（集中管理，避免重复定义）
+    // 1. 悬浮文字动画逻辑（优化版）
+    (function() {
+      // 文字库
+      const floatingTexts = [
+        "仁爱", "喜乐", "和平", "忍耐", "恩慈", 
+        "良善", "信实", "温柔", "节制"
+      ];
+
+      // 颜色库
+      const textColors = [
+        "#3B82F6", "#10B981", "#F59E0B", "#EF4444", 
+        "#8B5CF6", "#EC4899", "#06B6D4", "#F97316",
+        "#14B8A6", "#84CC16", "#DB2777", "#6366F1"
+      ];
+
+      // 动画类型库
+      const animationTypes = [
+        "float-basic", "float-sway", "float-spin", "float-pulse",
+        "float-gradient", "float-wave", "float-flash", "float-spiral"
+      ];
+
+      // 需要排除点击的元素
+      const excludedElements = [
+        document.getElementById('passwordModal'),
+        document.getElementById('searchContainer'),
+        document.getElementById('searchInput'),
+        document.getElementById('searchBtn')
+      ];
+
+      // 检查点击是否在排除区域内
+      function isClickExcluded(target) {
+        return excludedElements.some(el => {
+          if (!el) return false;
+          // 检查目标是否是排除元素本身或其子元素
+          return el === target || el.contains(target);
+        });
+      }
+
+      // 监听点击事件，精准定位（适配滚动）
+      document.addEventListener("click", (e) => {
+        // 排除特定区域的点击
+        if (isClickExcluded(e.target)) {
+          return;
+        }
+
+        // 随机选择配置
+        const text = floatingTexts[Math.floor(Math.random() * floatingTexts.length)];
+        const color = textColors[Math.floor(Math.random() * textColors.length)];
+        const animation = animationTypes[Math.floor(Math.random() * animationTypes.length)];
+        const isSpinReverse = Math.random() > 0.5;
+
+        // 创建元素
+        const textEl = document.createElement("span");
+        textEl.textContent = text;
+        textEl.className = `floating-text ${animation}`;
+        textEl.style.color = color;
+        
+        // 计算滚动偏移量（适配滚动场景）
+        const scrollX = window.scrollX || document.documentElement.scrollLeft || document.body.scrollLeft;
+        const scrollY = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop;
+        
+        // 计算绝对位置（视口坐标 + 滚动偏移）
+        const docX = e.clientX + scrollX;
+        const docY = e.clientY + scrollY;
+        
+        // 设置位置，确保文字从点击点正上方出现
+        textEl.style.left = `${docX}px`;
+        textEl.style.top = `${docY}px`;
+
+        // 特殊处理：旋转动画反转方向
+        if (animation === "float-spin" && isSpinReverse) {
+          textEl.style.animationDirection = "reverse";
+        }
+
+        // 添加到页面
+        document.body.appendChild(textEl);
+
+        // 动画结束后移除
+        setTimeout(() => {
+          if (textEl.parentNode) {
+            textEl.parentNode.removeChild(textEl);
+          }
+        }, 1800);
+      });
+    })();
+
+    // 2. 配置常量
     const API_VERIFY_PATH = "/api/verify";
     const FETCH_TIMEOUT = 10000; // 请求超时时间：10秒
     const SITE_CONFIG = {
@@ -187,7 +602,7 @@
       baijiajiangtan: { name: "百家讲坛", defaultUrl: "https://tv.cctv.com/lm/bjjjt/" }
     };
 
-    // 2. 带超时的fetch请求（避免无限pending）
+    // 3. 带超时的fetch请求
     async function fetchWithTimeout(url, options = {}) {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
@@ -197,55 +612,122 @@
         return response;
       } catch (err) {
         clearTimeout(timeoutId);
-        throw err; // 抛出错误，让上层处理
+        throw err;
       }
     }
 
-    // 3. 密码验证核心逻辑（精简冗余判断）
-    async function verifySite(siteKey) {
+    // 4. 密码弹窗控制
+    let currentSiteKey = "";
+    const modal = document.getElementById("passwordModal");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalPassword = document.getElementById("modalPassword");
+    const errorTip = document.getElementById("errorTip");
+    const cancelBtn = document.getElementById("cancelBtn");
+    const confirmBtn = document.getElementById("confirmBtn");
+    const confirmText = document.getElementById("confirmText");
+    const loadingSpinner = document.getElementById("loadingSpinner");
+
+    // 打开弹窗
+    function verifySite(siteKey) {
       const site = SITE_CONFIG[siteKey];
       if (!site) return alert("网站配置不存在");
+      currentSiteKey = siteKey;
+      modalTitle.textContent = `请输入【${site.name}】的访问密码`;
+      modalPassword.value = "";
+      errorTip.classList.add("hidden");
+      modal.classList.remove("hidden");
+      modalPassword.focus();
+    }
 
-      const userPassword = prompt(`请输入【${site.name}】的访问密码：`);
+    // 关闭弹窗
+    function closeModal() {
+      modal.classList.add("hidden");
+    }
+
+    // 取消按钮：跳转到默认网址
+    cancelBtn.addEventListener("click", () => {
+      const site = SITE_CONFIG[currentSiteKey];
+      if (site) window.open(site.defaultUrl, "_blank");
+      closeModal();
+    });
+
+    // 确认按钮：验证密码
+    confirmBtn.addEventListener("click", async () => {
+      const userPassword = modalPassword.value.trim();
       if (!userPassword) {
-        window.open(site.defaultUrl, "_blank");
+        errorTip.textContent = "请输入密码";
+        errorTip.classList.remove("hidden");
         return;
       }
+
+      // 显示加载状态
+      confirmText.textContent = "验证中";
+      loadingSpinner.classList.remove("hidden");
+      confirmBtn.disabled = true;
+      errorTip.classList.add("hidden");
 
       try {
         const response = await fetchWithTimeout(API_VERIFY_PATH, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ siteKey, password: userPassword })
+          body: JSON.stringify({ siteKey: currentSiteKey, password: userPassword })
         });
 
         if (!response.ok) throw new Error(`服务异常（${response.status}）`);
         const { success, targetUrl } = await response.json();
-        window.open(success ? targetUrl : site.defaultUrl, "_blank");
+        
+        if (success && targetUrl) {
+          closeModal();
+          window.open(targetUrl, "_blank");
+        } else {
+          errorTip.textContent = "密码错误，请重试";
+          errorTip.classList.remove("hidden");
+        }
       } catch (err) {
-        const errorMsg = err.name === "AbortError" ? "请求超时，请检查网络" : "验证失败，请重试";
-        alert(errorMsg);
-        console.error("验证错误：", err);
+        errorTip.textContent = err.name === "AbortError" ? "请求超时，请检查网络" : "验证失败，请重试";
+        errorTip.classList.remove("hidden");
+      } finally {
+        // 恢复按钮状态
+        confirmText.textContent = "验证";
+        loadingSpinner.classList.add("hidden");
+        confirmBtn.disabled = false;
       }
-    }
+    });
 
-    // 4. 北京时间更新（优化日期格式化，减少重复计算）
+    // 按Enter键提交密码
+    modalPassword.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") confirmBtn.click();
+    });
+
+    // 点击弹窗外部关闭
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) closeModal();
+    });
+
+    // 5. 北京时间更新（带骨架屏切换）
     function updateBeijingTime() {
       const now = new Date();
-      // 计算北京时间（UTC+8），避免重复运算
-      const beijingTime = new Date(now.getTime() + 8 * 3600000);
-      // 复用toLocale方法，减少代码量
+      const beijingTime = new Date(now.getTime() + 8 * 3600000); // UTC+8
+      
+      // 更新日期时间
       document.getElementById("beijingDate").textContent = beijingTime.toLocaleDateString("zh-CN", {
         year: "numeric", month: "long", day: "numeric", weekday: "long"
       });
       document.getElementById("beijingTime").textContent = beijingTime.toLocaleTimeString("zh-CN", {
         hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false
       });
+
+      // 隐藏骨架屏，显示真实内容
+      document.getElementById("beijingDate").classList.remove("hidden");
+      document.getElementById("beijingTime").classList.remove("hidden");
+      document.getElementById("dateSkeleton").classList.add("hidden");
+      document.getElementById("timeSkeleton").classList.add("hidden");
     }
+    // 初始加载时立即更新一次
     updateBeijingTime();
     setInterval(updateBeijingTime, 1000);
 
-    // 5. 搜索功能（精简事件绑定）
+    // 6. 搜索功能
     const searchInput = document.getElementById("searchInput");
     const searchBtn = document.getElementById("searchBtn");
     const performSearch = () => {
